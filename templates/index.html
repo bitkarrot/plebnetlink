@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html data-theme="dark" data-webp="true" lang="en">
+<link rel="stylesheet" href="/static/pico.min.css" />
+<link rel="stylesheet" href="/static/css/themes/lime.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flexboxgrid/6.3.1/flexboxgrid.min.css"
+  type="text/css">
+<link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon.png">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta property="og:url" content="" />
+  <meta charset="utf-8">  
+  <title>{{ title }}</title>
+</head>
+
+<body>
+  <!-- Nav -->
+  <nav class="container-fluid" style="border-bottom-style:solid; border-color: rgb(66, 66, 66); border-width: 0.1px">
+  <ul>
+      <a href="/">
+        <img src="/static/images/bitkarrot_256.jpg" height="64" width="64"
+        alt="Bitkarrot" />
+      </a>
+  </ul>
+    <ul>
+      <li>
+        <a class="secondary" href="https://github.com/bitkarrot">Github</a>
+      </li>
+      <li>
+        <a class="secondary" href="https://iris.to/bitkarrot">Nostr</a>
+      </li>
+      <li>
+        <a class="secondary" href="https://bitkarrot.substack.com">Substack</a>
+      </li>
+    </ul>
+  </nav><!-- ./ Nav -->
+
+  <main class="container center-sm">
+    <hgroup>
+        <h1 style="color:#A5D601">
+            Welcome to {{ title }}!
+        </h1>
+        <p>This micro app creates a custom Invoice amount Link to
+            the LNBits SatsPayExtension.
+        </p>
+    </hgroup>
+
+    <section id="converter">
+      <div class="grid">   
+        <div align="center">
+            <section>
+                <div class="center">
+                    <h4 style="color:#A5D601">
+                      <p>
+                        <!-- <span id="resetmsg"></span> -->
+                          <div data-theme="dark">
+                            <button id="copy-link" class="outline">
+                              <span id="sats-link"></span>                                        
+                              <img src="/static/images/lime_copy.png" width="30" alt="Copy" />
+                            </button>
+                          </div>
+                      </p>
+                    </h4>
+                </div>
+            </section>
+              <!-- <form id ="my-form"> -->
+              <fieldset>
+                  <label>
+                    3 Letter Fiat Code (USD, EUR, etc.)
+                    <input
+                      id="inputFiat"
+                      name="fiat"
+                      type="text"
+                      maxlength="3"
+                      placeholder="{{fiat}}"
+                      value="{{fiat}}"
+                    />
+                  </label>
+                  <label>
+                    Amount
+                    <input
+                        id="inputAmount"
+                        type="number"
+                        name="amount"
+                        placeholder="100"
+                        value="{{amount}}"
+                      />
+                  </label>
+                  <label>
+                    Short Description (optional, Max 15 characters)
+                    <input
+                      id="inputDesc"
+                      type="text"
+                      maxlength="15"
+                      name="description"
+                      placeholder="Meeting"
+                      value="{{description}}"
+                      />
+                  </label>
+
+                </fieldset>  
+                <div class="grid">
+                <div>
+                  <input
+                    type="submit"
+                    value="Get Invoice Link!"
+                    onclick="updateLink()"
+                  />
+                </div>
+                  <div>
+                    <input
+                    class="secondary"
+                    type="submit"
+                    value="Reset"
+                    onclick="reset()"
+                  /> 
+                </div>
+              </div>
+              <!-- </form> -->
+            </div>
+      </div>
+      <div align="left">
+          <h4>Why do this?</h4>
+            
+          <p>
+            So that we can access a BTCPay 
+            style lightning invoice in USD or fiat 
+            with a link instead of creating it
+            manually from within the LNBits web interface. 
+            Unlike a regular invoice, the satspay server has a nice 
+            a count down timer and option for both LN or OnChain payments.  
+          </p>
+
+          <p>
+          Links can be added or shared to other applications, 
+          such as calendar bookings without extra integration steps.
+          </p>
+            
+          <p>
+          Alternatively, you can just make a url directly without this form, 
+          using the guideline below.
+          </p>
+
+          <p>
+            <em>
+            URL Pattern: <p id="urlDisplay"></p>
+            </em>
+            <!-- https://plebnetlink.vercel.app/fiat/{currency}/amt/{value} -->
+          </p>
+          or for satoshis, skip fiat and currency type, just use <em>https://domain.com/amt/{value}</em>
+          
+    </div>
+    </section>
+    <footer
+      Built with <a href="https://picocss.com"> Pico </a> • <a href="https://github.com/bitkarrot/satspaysession">
+        Source </a>
+    </footer>
+  </main>
+</body>
+
+
+<script>
+    // Get the current page's URL
+    var currentPageUrl = window.location.href;
+    
+    // Display the URL in the console or use it as needed
+    console.log("Current Page URL:", currentPageUrl);
+    // Display the URL in the HTML body
+    document.getElementById('urlDisplay').textContent = currentPageUrl + "fiat/{currency}/amt/{value}";
+
+    let satlink = document.getElementById('sats-link')
+    let satquote = document.querySelector('#sats-link')
+    let handleCopyClick = document.querySelector('#copy-link');
+
+    handleCopyClick.addEventListener('click', () => {
+      let text = satquote.textContent;
+      navigator.clipboard.writeText(`${text}`);
+    
+      alert(`Copied to clipboard!`);
+    });
+
+    function reset()  { 
+      location.reload()
+      document.getElementById("inputAmount").value = "100"
+      document.getElementById("inputFiat").value = "USD"
+      document.getElementById("inputDesc").value = "Meeting"
+    }
+
+    function updateLink() {
+      let newValue = currentPageUrl + "fiat/" + document.getElementById("inputFiat").value + "/amt/" + document.getElementById("inputAmount").value; 
+      var inputDescValue = document.getElementById("inputDesc").value;
+      if (typeof inputDescValue === "string" && inputDescValue.length > 0) {
+        var modifiedStr = inputDescValue.replace(/\s/g, "-");
+        newValue = newValue + "/desc/" + modifiedStr
+      }
+      document.getElementById("sats-link").textContent = newValue;
+      document.getElementById("resetmsg").textContent ="Click Link to reset"
+
+    }
+    
+    var inputDesc = document.getElementById("inputDesc");
+    inputDesc.addEventListener("input", function() {
+      if (inputDesc.value.length > 15) {
+        inputDesc.value = inputDesc.value.slice(0, 15);
+      }
+    });
+    var inputField = document.getElementById("inputFiat");
+    inputField.addEventListener("input", function() {
+      if (inputField.value.length > 3) {
+        inputField.value = inputField.value.slice(0, 3);
+      }
+    });
+
+    var inputAmt = document.getElementById("inputAmount");
+     inputAmt.addEventListener('input', (event) => {
+        const userInput = event.target.value;
+        const regex = /^\d+(\.\d{0,2})?$/;
+        const isValid = regex.test(userInput);
+        if (!isValid) {
+          event.target.value = userInput.slice(0, -1);
+        }
+    });
+
+  </script>
+</html>
