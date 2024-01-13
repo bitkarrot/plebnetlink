@@ -1,4 +1,6 @@
-# Plebnet.link  - this ia modified clone of Satspay Session
+# Plebnet.link 
+
+- this ia modified clone of Satspay Session
 
 This micro app delivers a custom Invoice amount from the SatsPayExtension fron LNbits via an FastAPI endpoint.
 
