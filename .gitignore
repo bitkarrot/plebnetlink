@@ -14,3 +14,7 @@ venv.bak/
 
 # extra
 scratch.txt
+
+# pem
+cert.pem
+key.pem

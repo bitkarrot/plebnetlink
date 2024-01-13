@@ -94,4 +94,16 @@ pip install -r requirements.txt
 uvicorn src.app:app --reload
 ```
 
+### running with ssl cert
+
+```sh
+openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
+```
+
+then 
+
+```sh
+uvicorn src.app:app --ssl-keyfile key.pem --ssl-certfile cert.pem
+```
+
 Your application is now available at `http://localhost:8000`.
