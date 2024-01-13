@@ -20,8 +20,7 @@ https://pblink.vercel.app/fiat/{currency}/amt/{value}
 
 ### Example: 
 
-<img width="525" alt="Screenshot 2023-06-19 at 2 26 50 PM" src="https://github.com/lightningames/plebnetlink/assets/73979971/661cdc20-417d-472b-8870-e5f4898ee518">
-
+<img width="525" alt="Screenshot 2023-06-19 at 2 26 50 PM" src="https://github.com/lightningames/satspaysession/assets/73979971/661cdc20-417d-472b-8870-e5f4898ee518">
 
 This is a live example, where the repo is deployed at satspaylink.vercel.app and the user specifies currency type and amount at the url: 
 
@@ -32,8 +31,7 @@ then redirect the user to a lightning invoice created by the satspayserver exten
 
 Clicking on the above link will redirect to the lnbits satspay extension with the lightning invoice conversion automatically. 
 
-<img width="545" alt="Screenshot 2023-06-08 at 10 29 07 AM" src="https://github.com/bitkarrot/plebnetlink/assets/73979971/e958e4a7-779c-443d-82cf-842ad181eb86">
-
+<img width="545" alt="Screenshot 2023-06-08 at 10 29 07 AM" src="https://github.com/bitkarrot/satspaysession/assets/73979971/e958e4a7-779c-443d-82cf-842ad181eb86">
 ## Environment variables
 
 For More information about how SatsPay Server works in LNBits, please visit the [extension page](https://github.com/lnbits/satspay)
