@@ -141,14 +141,11 @@ async def dynamic_satendpoint(amount: int, description: str):
 @app.get("/amount/{amount}")
 async def dynamic_sats(amount: int, desc: Union[str, None] = None):
     """
-    Endpoint for satoshis amount only
-    with option for desc in the url, e.g.
+    returns a text link only
     /amount/{amount}?desc={desc}
-
     ## get tx id from the res_url
     ## e.g.  https://testnet.plebnet.dev/satspay/MnzCtpphVdrDgXzVtiNWTb
     ## so we can check the tx id in lnbits for completion 
-
     """
     logger.info(f"amt: {amount} desc: {desc}")
     description = ""
@@ -158,10 +155,24 @@ async def dynamic_sats(amount: int, desc: Union[str, None] = None):
     res_url = await handle_params(amount, description)
     return res_url
 
-    # if is_https_url(res_url):
-    #     return RedirectResponse(url=res_url, status_code=302)
-    # else:
-    # return res_url
+
+@app.get("/fee/{amount}")
+async def register_sats(amount: int, desc: Union[str, None] = None):
+    """
+    Endpoint for satoshis amount only
+    with option for desc in the url, e.g.
+    /fee/{amount}?desc={desc}
+    """
+    #logger.info(f"fee: {amount} desc: {desc}")
+    description = ""
+    if not isinstance(desc, type(None)):
+        description = desc
+    #logger.info(f'description: {description}')
+    res_url = await handle_params(amount, description)
+    if is_https_url(res_url):
+        return RedirectResponse(url=res_url, status_code=302)
+    else:
+        return res_url
 
 
 @app.get("/")
