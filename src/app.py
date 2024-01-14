@@ -138,12 +138,12 @@ async def dynamic_satendpoint(amount: int, description: str):
     else:
         return res_url
 
-@app.get("/amt/{amount}")
+@app.get("/amount/{amount}")
 async def dynamic_sats(amount: int, desc: Union[str, None] = None):
     """
     Endpoint for satoshis amount only
     with option for desc in the url, e.g.
-    /amt/{amount}?desc={desc}
+    /amount/{amount}?desc={desc}
 
     ## get tx id from the res_url
     ## e.g.  https://testnet.plebnet.dev/satspay/MnzCtpphVdrDgXzVtiNWTb
@@ -156,10 +156,12 @@ async def dynamic_sats(amount: int, desc: Union[str, None] = None):
         description = desc
     logger.info(f'description: {description}')
     res_url = await handle_params(amount, description)
-    if is_https_url(res_url):
-        return RedirectResponse(url=res_url, status_code=302)
-    else:
-        return res_url
+    return res_url
+
+    # if is_https_url(res_url):
+    #     return RedirectResponse(url=res_url, status_code=302)
+    # else:
+    # return res_url
 
 
 @app.get("/")
