@@ -239,6 +239,21 @@ async def webhook_post(request: Request):
     logger.info(f"POST json DATA: {data}")
     return templates.TemplateResponse("thanks.html", context={"request": request})
 
+@app.get("/paylink", status_code=http.HTTPStatus.ACCEPTED)
+async def paylink_post(request: Request):
+    query_params = request.query_params
+    logger.info("Inside GET /paylink endpoint")
+    if query_params:
+        logger.info("thanks endpoint, data via GET")
+        for param_name, param_value in query_params.items():
+            print(f"Parameter Name: {param_name}, Value: {param_value}")
+    else:
+        logger.info("No data received via GET")
+
+#    data = await request.json()
+#    logger.info(f'POST json from paylink endpoint: {data}')
+    return "ok"
+
 
 @app.post("/paylink", status_code=http.HTTPStatus.ACCEPTED)
 async def paylink_post(request: Request):
