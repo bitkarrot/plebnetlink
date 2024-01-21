@@ -1,5 +1,7 @@
 import http
-
+import httpx
+# import asyncio
+import os
 from typing import Union
 
 from fastapi import FastAPI, Request
@@ -11,6 +13,8 @@ from loguru import logger
 
 from .exchange_rates import fiat_amount_as_satoshis
 from .utils import get_lnbits_satspay, is_https_url
+
+discord_var = os.environ.get('DISCORD_VAR')
 
 TITLE = "satspay session"
 APP_DESC = "simple url bridge to lnbits satspay extension"
@@ -221,6 +225,42 @@ async def thanks_page(request: Request):
     return templates.TemplateResponse("thanks.html", context={"request": request})
 
 
+async def get_insert_data(data):
+    extracted_data = {
+    'id': data['record']['id'],
+    'name': data['record']['name'],
+    'goal': data['record']['goal'],
+    'email': data['record']['email'],
+    'github': data['record']['github'],
+    'mentor': data['record']['mentor'],
+    'twitter': data['record']['twitter'],
+    'datetime': data['record']['datetime'],
+    'experience': data['record']['experience'],
+    'payment_id': data['record']['payment_id'],
+    'discord_username': data['record']['discord_username'],
+    'payment_status': data['record']['payment_status']
+    }
+    # Pretty print the extracted data
+    pretty_data = ''
+    for key, value in extracted_data.items():
+        pretty_data += f'**{key}**: {value}' + '\n'
+
+    return pretty_data
+
+async def send_discord_message(content):
+    url = "https://discord.com/api/webhooks/1196557151456481411/" + discord_var
+    payload = {"content": content}
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, json=payload)
+    if response.status_code == 200:
+        print("Message sent successfully")
+    else:
+        print(f"Failed to send message. Status code: {response.status_code}")
+        print(f"Response content: {response.text}")
+
+
+# database updates
 @app.post("/webhook", status_code=http.HTTPStatus.ACCEPTED)
 async def webhook_post(request: Request):
     """
@@ -237,35 +277,43 @@ async def webhook_post(request: Request):
     # logger.info(f"Thanks body POST: {str(payload)}")
     data = await request.json()
     logger.info(f"POST json DATA: {data}")
+
+    # send data to discord webhook
+    if data['type'] == 'INSERT':
+        insert_data =  get_insert_data(data)
+        logger.info('formatted insert_data: ' + insert_data)
+        send_discord_message(insert_data)
+
     return templates.TemplateResponse("thanks.html", context={"request": request})
 
-@app.get("/paylink", status_code=http.HTTPStatus.ACCEPTED)
-async def paylink_post(request: Request):
-    query_params = request.query_params
-    logger.info("Inside GET /paylink endpoint")
-    if query_params:
-        logger.info("thanks endpoint, data via GET")
-        for param_name, param_value in query_params.items():
-            print(f"Parameter Name: {param_name}, Value: {param_value}")
-    else:
-        logger.info("No data received via GET")
 
-#    data = await request.json()
-#    logger.info(f'POST json from paylink endpoint: {data}')
-    return "ok"
+# @app.get("/paylink", status_code=http.HTTPStatus.ACCEPTED)
+# async def paylink_post(request: Request):
+#     query_params = request.query_params
+#     logger.info("Inside GET /paylink endpoint")
+#     if query_params:
+#         logger.info("thanks endpoint, data via GET")
+#         for param_name, param_value in query_params.items():
+#             print(f"Parameter Name: {param_name}, Value: {param_value}")
+#     else:
+#         logger.info("No data received via GET")
+
+# #    data = await request.json()
+# #    logger.info(f'POST json from paylink endpoint: {data}')
+#     return "ok"
 
 
-@app.post("/paylink", status_code=http.HTTPStatus.ACCEPTED)
-async def paylink_post(request: Request):
-    """
-        paylink POST endpoint
-    """
-    logger.info("Inside POST /paylink endpoint")
-    # payload = await request.body()
-    # logger.info(f"paylink body POST: {str(payload)}")
-    data = await request.json()
-    logger.info(f"POST json from paylink endpoint: {data}")
-    return "ok"
+# @app.post("/paylink", status_code=http.HTTPStatus.ACCEPTED)
+# async def paylink_post(request: Request):
+#     """
+#         paylink POST endpoint
+#     """
+#     logger.info("Inside POST /paylink endpoint")
+#     # payload = await request.body()
+#     # logger.info(f"paylink body POST: {str(payload)}")
+#     data = await request.json()
+#     logger.info(f"POST json from paylink endpoint: {data}")
+#     return "ok"
 
 
 @app.get("/about")
