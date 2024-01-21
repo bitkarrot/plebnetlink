@@ -256,10 +256,41 @@ async def get_insert_data(data):
 
     return pretty_data
 
+
+async def get_update_corp_data(data):
+    update_data = {
+        'Org Name': data['record']['org_name'],
+        'payment_id': data['record']['payment_id'],
+        'payment_status': data['record']['payment_status']
+    }
+    pretty_data = ''
+    for key, value in update_data.items():
+        pretty_data += f'**{key}**: {value}' + '\n'
+    return pretty_data
+
+
+async def get_insert_corp_data(data):
+    extracted_data = {
+        'id': data['record']['id'],
+        'Org name': data['record']['org_name'],
+        'discord_username': data['record']['discord_username'],
+        'email': data['record']['email'],
+        'goal': data['record']['goal'],
+        'contact person': data['record']['contact_person'],
+        'twitter': data['record']['twitter'],
+        'datetime': data['record']['datetime'],
+        'payment_id': data['record']['payment_id'],
+    }
+    pretty_data = ''     # Pretty print the extracted data
+    for key, value in extracted_data.items():
+        pretty_data += f'**{key}**: {value}' + '\n'
+
+    return pretty_data
+
+
 async def send_discord_message(content):
     # live url
     # url = "https://discord.com/api/webhooks/1198510387839123526/" + discord_var
-
     # test url
     url = "https://discord.com/api/webhooks/1196557151456481411/" + discord_var
     payload = {"content": content}
@@ -273,18 +304,31 @@ async def send_discord_message(content):
         print(f"Response content: {response.text}")
 
 
+
+@app.post("/webhookcorp", status_code=http.HTTPStatus.ACCEPTED)
+async def webhook_corp_post(request: Request):
+    logger.info("Inside POST /webhookcorp endpoint")
+    data = await request.json()
+    logger.info(f"POST json DATA: {data}")
+    try:
+        if data['type'] == 'INSERT':
+            insert_data =  await get_insert_corp_data(data)
+            logger.info('formatted insert_data: ' + insert_data)
+            prefix = "**Registration Submitted:** \n (Wait for confirmation) \n"
+            await send_discord_message(prefix + insert_data)
+        elif data['type'] == 'UPDATE':
+            update_data = await get_update_corp_data(data)
+            prefix = '**Registration Updated:** \n (PAYMENT CONFIRMED) \n'
+            await send_discord_message(prefix + update_data)
+
+    except Exception as e:
+        logger.error(e)
+    return "ok"
+
+
 # database updates are posted to this endpoint
 @app.post("/webhook", status_code=http.HTTPStatus.ACCEPTED)
 async def webhook_post(request: Request):
-    """
-    A handler for the HTTP POST request to '/thanks'.
-
-    Parameters:
-        request (Request): The incoming HTTP request object.
-
-    Returns:
-        TemplateResponse: The HTML template response for 'thanks.html'.
-    """
     logger.info("Inside POST /webhook endpoint") 
     data = await request.json()
     logger.info(f"POST json DATA: {data}")
@@ -296,7 +340,7 @@ async def webhook_post(request: Request):
             logger.info(data['record'])
             insert_data =  await get_insert_data(data)
             logger.info('formatted insert_data: ' + insert_data)
-            prefix = "**Registration Submitted:** \n (INSERT. Wait for confirmation) \n"
+            prefix = "**Registration Submitted:** \n (Wait for confirmation) \n"
             await send_discord_message(prefix + insert_data)
         elif data['type'] == 'UPDATE':
             logger.info(data['type'])
