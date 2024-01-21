@@ -225,29 +225,42 @@ async def thanks_page(request: Request):
     return templates.TemplateResponse("thanks.html", context={"request": request})
 
 
+async def get_update_data(data):
+    update_data = {
+        'name': data['record']['name'],
+        'payment_id': data['record']['payment_id'],
+        'payment_status': data['record']['payment_status']
+    }
+    pretty_data = ''
+    for key, value in update_data.items():
+        pretty_data += f'**{key}**: {value}' + '\n'
+    return pretty_data
+
 async def get_insert_data(data):
     extracted_data = {
-    'id': data['record']['id'],
-    'name': data['record']['name'],
-    'goal': data['record']['goal'],
-    'email': data['record']['email'],
-    'github': data['record']['github'],
-    'mentor': data['record']['mentor'],
-    'twitter': data['record']['twitter'],
-    'datetime': data['record']['datetime'],
-    'experience': data['record']['experience'],
-    'payment_id': data['record']['payment_id'],
-    'discord_username': data['record']['discord_username'],
-    'payment_status': data['record']['payment_status']
+        'id': data['record']['id'],
+        'name': data['record']['name'],
+        'discord_username': data['record']['discord_username'],
+        'email': data['record']['email'],
+        'goal': data['record']['goal'],
+        'github': data['record']['github'],
+        'mentor': data['record']['mentor'],
+        'twitter': data['record']['twitter'],
+        'datetime': data['record']['datetime'],
+        'experience': data['record']['experience'],
+        'payment_id': data['record']['payment_id'],
     }
-    # Pretty print the extracted data
-    pretty_data = ''
+    pretty_data = ''     # Pretty print the extracted data
     for key, value in extracted_data.items():
         pretty_data += f'**{key}**: {value}' + '\n'
 
     return pretty_data
 
 async def send_discord_message(content):
+    # live url
+    # url = "https://discord.com/api/webhooks/1198510387839123526/" + discord_var
+
+    # test url
     url = "https://discord.com/api/webhooks/1196557151456481411/" + discord_var
     payload = {"content": content}
 
@@ -260,7 +273,7 @@ async def send_discord_message(content):
         print(f"Response content: {response.text}")
 
 
-# database updates
+# database updates are posted to this endpoint
 @app.post("/webhook", status_code=http.HTTPStatus.ACCEPTED)
 async def webhook_post(request: Request):
     """
@@ -273,47 +286,28 @@ async def webhook_post(request: Request):
         TemplateResponse: The HTML template response for 'thanks.html'.
     """
     logger.info("Inside POST /webhook endpoint") 
-    # payload = await request.body()
-    # logger.info(f"Thanks body POST: {str(payload)}")
     data = await request.json()
     logger.info(f"POST json DATA: {data}")
 
     # send data to discord webhook
-    if data['type'] == 'INSERT':
-        insert_data =  get_insert_data(data)
-        logger.info('formatted insert_data: ' + insert_data)
-        send_discord_message(insert_data)
+    try:
+        if data['type'] == 'INSERT':
+            logger.info(data['type'])
+            logger.info(data['record'])
+            insert_data =  await get_insert_data(data)
+            logger.info('formatted insert_data: ' + insert_data)
+            prefix = "**Registration Submitted:** \n (INSERT. Wait for confirmation) \n"
+            await send_discord_message(prefix + insert_data)
+        elif data['type'] == 'UPDATE':
+            logger.info(data['type'])
+            logger.info(data['record'])
+            update_data = await get_update_data(data)
+            prefix = '**Registration Updated:** \n (PAYMENT CONFIRMED) \n'
+            await send_discord_message(prefix + update_data)
 
-    return templates.TemplateResponse("thanks.html", context={"request": request})
-
-
-# @app.get("/paylink", status_code=http.HTTPStatus.ACCEPTED)
-# async def paylink_post(request: Request):
-#     query_params = request.query_params
-#     logger.info("Inside GET /paylink endpoint")
-#     if query_params:
-#         logger.info("thanks endpoint, data via GET")
-#         for param_name, param_value in query_params.items():
-#             print(f"Parameter Name: {param_name}, Value: {param_value}")
-#     else:
-#         logger.info("No data received via GET")
-
-# #    data = await request.json()
-# #    logger.info(f'POST json from paylink endpoint: {data}')
-#     return "ok"
-
-
-# @app.post("/paylink", status_code=http.HTTPStatus.ACCEPTED)
-# async def paylink_post(request: Request):
-#     """
-#         paylink POST endpoint
-#     """
-#     logger.info("Inside POST /paylink endpoint")
-#     # payload = await request.body()
-#     # logger.info(f"paylink body POST: {str(payload)}")
-#     data = await request.json()
-#     logger.info(f"POST json from paylink endpoint: {data}")
-#     return "ok"
+    except Exception as e:
+        logger.error(e)
+    return "ok"
 
 
 @app.get("/about")
@@ -322,4 +316,3 @@ def about():
     Get information about the application.
     """
     return "About"
-
