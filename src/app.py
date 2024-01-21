@@ -292,7 +292,7 @@ async def send_discord_message(content):
     # live url
     # url = "https://discord.com/api/webhooks/1198510387839123526/" + discord_var
     # test url
-    url = "https://discord.com/api/webhooks/1196557151456481411/" + discord_var
+    url = discord_var
     payload = {"content": content}
 
     async with httpx.AsyncClient() as client:
